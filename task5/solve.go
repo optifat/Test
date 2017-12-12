@@ -1,22 +1,36 @@
 package main
 
 import(
-    //"encoding/json"
+    "encoding/json"
     "net/http"
-    //"fmt"
-    //"sort"
-    //"strconv"
-
     "github.com/gorilla/mux"
+    "log"
 )
 
-func handler(w http.ResponseWriter, r *http.Request){
-  return
+type myItem struct{
+  key string `json:"key"`
+  id int `json:"id"`
 }
 
-func main(){
-  router := mux.NewRouter()
-  router.HandleFunc("/", handler)
-  router.HandleFunc("/", handler).Methods("GET")
-  http.ListenAndServe(":8082", router)
+var (
+  itemsStore  = make(map[string]int)
+  thiskey = 0
+)
+
+
+func myHandler(w http.ResponseWriter, r *http.Request){
+
+    var itemToAdd myItem
+    j, _ := json.Marshal(itemToAdd)
+
+    itemsStore[string(j)] = thiskey
+    thiskey += 1
+    w.WriteHeader(http.StatusOK)
+    w.Write([]byte(string(thiskey)))
+}
+
+func main()  {
+    r := mux.NewRouter()
+    r.HandleFunc("/", myHandler).Methods("GET", "POST")
+    log.Fatal(http.ListenAndServe(":8082", r))
 }
